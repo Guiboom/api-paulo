@@ -7,13 +7,14 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class TaskResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'titulo' => $this->title,
+            'descricao' => $this->description,
+            'concluida' => (bool) $this->completed,
+            'criado_em' => $this->created_at->format('d/m/Y H:i'),
+        ];
     }
 }

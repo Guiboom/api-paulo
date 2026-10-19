@@ -2,47 +2,68 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Task;
+use App\Http\Resources\TaskResource;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return TaskResource::collection(Task::all());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $task = Task::create($validated);
+
+        return (new TaskResource($task))
+            ->additional(['message' => 'Tarefa criada com sucesso!'])
+            ->response()
+            ->setStatusCode(201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Task $task)
     {
-        //
+        return new TaskResource($task);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Task $task)
     {
-        //
+        $validated = $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+            'completed' => 'sometimes|boolean',
+        ]);
+
+        $task->update($validated);
+
+        return (new TaskResource($task))
+            ->additional(['message' => 'Tarefa atualizada com sucesso!']);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function complete(Task $task)
     {
-        //
+        $task->completed = true;
+        $task->save();
+
+        return new TaskResource($task)
+            ->additional(['message' => 'Tarefa marcada como concluída!'])
+            ->response()
+            ->setStatusCode(200);
+    }
+
+    public function destroy(Task $task)
+    {
+        $task->delete();
+
+        return response()->json([
+            'message' => 'Tarefa removida com sucesso!'
+        ], 200);
     }
 }
